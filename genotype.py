@@ -9,7 +9,7 @@ Author: Ryan Baker
 # Genotype class
 class Genotype:
 
-    # encode pairs of alleles as 0s, 1s, and 2s
+    # Encode pairs of alleles as 0s, 1s, and 2s
     HOMO_REF = 0
     HOMO_ALT = 1
     HETERO   = 2
@@ -21,6 +21,9 @@ class Genotype:
             if not (x == self.HOMO_REF or x == self.HOMO_ALT or x == self.HETERO):
                 raise ValueError("bad genotype data")
         return
+
+    def __getitem__(self, x):
+        return self.data[x]
 
     def __len__(self):
         return self.m

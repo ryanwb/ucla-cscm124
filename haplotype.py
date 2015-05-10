@@ -9,7 +9,7 @@ Author: Ryan Baker
 # Haplotype class
 class Haplotype:
 
-    # encode alleles as 0s and 1s
+    # Encode alleles as 0s and 1s
     REF = 0
     ALT = 1
 
@@ -20,6 +20,9 @@ class Haplotype:
             if not (x == self.REF or x == self.ALT):
                 raise ValueError("bad haplotype data")
         return
+
+    def __getitem__(self, x):
+        return self.data[x]
 
     def __len__(self):
         return self.m
