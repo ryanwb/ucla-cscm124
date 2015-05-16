@@ -6,6 +6,8 @@ Module for haplotype data
 Author: Ryan Baker
 """
 
+from genotype import Genotype
+
 # Haplotype class
 class Haplotype:
 
@@ -17,9 +19,37 @@ class Haplotype:
         self.data = data    # the genotype data; list of ints with values 0, 1, 2
         self.m = len(data)  # m is number of SNPs
         for x in self.data:
-            if not (x == self.REF or x == self.ALT):
+            if not (x == Haplotype.REF or x == Haplotype.ALT):
                 raise ValueError("bad haplotype data")
         return
+
+    # Generate a complementary haplotype for a given genotype
+    # This is O(m), where m is the genotype length
+    def complement(self, genotype):
+        if self.m != len(genotype):
+            raise ValueError("genotype/haplotype length mismatch")
+        complement = [None] * self.m
+        for x in xrange(self.m):
+            if genotype[x] == Genotype.HOMO_REF or genotype[x] == Genotype.HOMO_ALT:
+                complement[x] = self.data[x]
+            else: # HETERO
+                if self.data[x] == Haplotype.REF:
+                    complement[x] = Haplotype.ALT
+                else: # ALT
+                    complement[x] = Haplotype.REF
+        return Haplotype(complement)
+
+    # Override the hash and eq functions since we will be
+    # throwing Haplotype objects into a set to count parsimony
+
+    def __hash__(self):
+        return hash(tuple(self.data))
+
+    def __eq__(self, other):
+        if isinstance(other, Haplotype):
+            return (tuple(self.data) == tuple(other.data))
+        else:
+            return False
 
     def __getitem__(self, x):
         return self.data[x]

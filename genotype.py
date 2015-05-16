@@ -18,7 +18,7 @@ class Genotype:
         self.data = data    # the genotype data; list of ints with values 0, 1, 2
         self.m = len(data)  # m is the number of SNPs
         for x in self.data:
-            if not (x == self.HOMO_REF or x == self.HOMO_ALT or x == self.HETERO):
+            if not (x == Genotype.HOMO_REF or x == Genotype.HOMO_ALT or x == Genotype.HETERO):
                 raise ValueError("bad genotype data")
         return
 
