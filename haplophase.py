@@ -11,33 +11,38 @@ from haplotype import Haplotype
 from phase import Phase
 from phaser import Phaser
 import time
+import argparse
 
 def main():
+
+    parser = argparse.ArgumentParser(description='Phase genotype data into haplotypes (min parsimony)')
+    parser.add_argument('-n', type=int,
+                    help='number of individuals (each individual has two haplotypes)')
+    parser.add_argument('-m', type=int,
+                    help='number of SNPs')
+    parser.add_argument("-e", "--exhaustive", action="store_true",
+                    help="use exhaustive algorithm")
+    parser.add_argument("-g", "--greedy", action="store_true", 
+                    help="use greedy algorithm")
+
+    args = parser.parse_args()
 
     phaser = Phaser()
 
     print 'Genotypes:'
-    genotypes = [Genotype(random=True, length=5) for i in xrange(30)]
+    genotypes = [Genotype(random=True, length=args.m) for i in xrange(args.n)]
     for genotype in genotypes:
         print genotype
 
     print ''
 
-    start_time = time.time()
-    best_phasing, min_parsimony = phaser.phase_trivial_improved(genotypes)
-    end_time = time.time()
+    if args.greedy:
+        phasing, parsimony = phaser.phase_greedy(genotypes)
+    else: # if args.exhaustive
+        phasing, parsimony = phaser.phase_trivial_improved(genotypes)
 
-    print 'Minimum parsimony: %d\nTime: %s sec' % (min_parsimony, end_time - start_time)
-    for phase in best_phasing:
-        print phase
-        print ""
-
-    start_time = time.time()
-    greedy_phasing, greedy_parsimony = phaser.phase_greedy(genotypes)
-    end_time = time.time()
-
-    print 'Greedy parsimony: %d\nTime: %s sec' % (greedy_parsimony, end_time - start_time)
-    for phase in greedy_phasing:
+    print 'Parsimony: %d\n' % parsimony
+    for phase in phasing:
         print phase
         print ""
 
