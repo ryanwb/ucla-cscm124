@@ -9,6 +9,7 @@ Author: Ryan Baker
 # TODO: Compute/check all the complexities of these algorithms!
 # TODO: List vs. tuple? Switch some lists to tuples?
 
+import copy
 from itertools import product, combinations_with_replacement
 from genotype import Genotype
 from haplotype import Haplotype
@@ -134,7 +135,7 @@ class Phaser:
     #   2. Prune this list, removing phasings that are incongruous with the genotype information
     #   3. At this point, we have all "valid" phasings... check which one has minimum parsimony
     # Note that this algorithm is O( n * 2^(2mn) ). No bueno... but it is guaranteed to be optimal
-    def bruteforce_min_parsimony_phase(self, genotypes):
+    def phase_trivial(self, genotypes):
         n = len(genotypes)
         m = genotypes[0].m
         phasings = self.generate_phasings(n, m)
@@ -145,8 +146,42 @@ class Phaser:
 
     # Same as above, but we only generate the 2^(k-1) phasings for k ambiguous (heterozygous) sites
     # This is considerably faster!
-    def bruteforce_min_parsimony_phase_v2(self, genotypes):
+    def phase_trivial_improved(self, genotypes):
         phasings = self.generate_valid_phasings(genotypes)
         parsimonies = [ self.parsimony(phasing) for phasing in phasings ]
         min_parsimony = min(parsimonies)
         return phasings[parsimonies.index(min_parsimony)], min_parsimony
+
+    # Here's a greedy algorithm for phasing, aimed at minimizing the persimony of the result
+    # (although here the greed is NOT always optimal)
+    # Pseudocode:
+    #   generate all 2^m length m haplotypes
+    #   while there are unresolved genotypes
+    #       count how many unresolved genotypes each of our 2^m haplotypes explains
+    #       let h = the haplotype that explains the highest number of genotypes
+    #       apply h to each of the genotypes that it can explain (resolving it with the complement of h)
+    def phase_greedy(self, genotypes):
+        n = len(genotypes)
+        m = genotypes[0].m
+        haps = self.generate_haplotypes(m)
+        unresolved_genotypes = list(genotypes)
+        phasing = [None] * n
+        while unresolved_genotypes:
+            # zero out all counts
+            count = [0] * len(haps)
+            # count the number of times each haplotype explains any of the unresolved genotypes
+            for h in xrange(len(haps)):
+                for g in unresolved_genotypes:
+                    if haps[h].explains(g):
+                        count[h] += 1
+            # get the best haplotype (greedily)
+            best_haplotype = haps[count.index(max(count))]
+            # resolve those which we can with this haplotype; keep track of which genotypes we resolved
+            resolved_genotypes = []
+            for i in xrange(n):
+                if phasing[i] == None and best_haplotype.explains(genotypes[i]):
+                    resolved_genotypes.append(genotypes[i])
+                    phasing[i] = Phase(copy.copy(best_haplotype), best_haplotype.complement(genotypes[i]))
+            for to_remove in resolved_genotypes:
+                unresolved_genotypes[:] = [g for g in unresolved_genotypes if g != to_remove]
+        return phasing, self.parsimony(phasing)

@@ -6,6 +6,8 @@ Module for genotype data
 Author: Ryan Baker
 """
 
+from random import randrange
+
 # Genotype class
 class Genotype:
 
@@ -14,13 +16,30 @@ class Genotype:
     HOMO_ALT = 1
     HETERO   = 2
 
-    def __init__(self, data):
-        self.data = data    # the genotype data; list of ints with values 0, 1, 2
-        self.m = len(data)  # m is the number of SNPs
-        for x in self.data:
-            if not (x == Genotype.HOMO_REF or x == Genotype.HOMO_ALT or x == Genotype.HETERO):
-                raise ValueError("bad genotype data")
+    # e.g. Genotype([0 2 0 1]) explicitly, or
+    # can do Genotype(random=True, length=5) to generate a random genotype of length 5
+    def __init__(self, data=None, random=False, length=None):
+        if data is not None:
+            self.data = data    # the genotype data; list of ints with values 0, 1, 2
+            self.m = len(data)  # m is the number of SNPs
+            for x in self.data:
+                if not (x == Genotype.HOMO_REF or x == Genotype.HOMO_ALT or x == Genotype.HETERO):
+                    raise ValueError("bad genotype data")
+        else:
+            if length is None:
+                raise ValueError("must provide length for random genotype")
+            self.m = length
+            self.data = [randrange(3) for i in xrange(length)]
         return
+
+    def __hash__(self):
+        return hash(tuple(self.data))
+
+    def __eq__(self, other):
+        if isinstance(other, Genotype):
+            return (tuple(self.data) == tuple(other.data))
+        else:
+            return False
 
     def __getitem__(self, x):
         return self.data[x]

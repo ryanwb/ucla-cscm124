@@ -31,6 +31,10 @@ class Haplotype:
         complement = [None] * self.m
         for x in xrange(self.m):
             if genotype[x] == Genotype.HOMO_REF or genotype[x] == Genotype.HOMO_ALT:
+                if genotype[x] == Genotype.HOMO_REF and self.data[x] == Haplotype.ALT:
+                    raise ValueError("non-complementable haplotype for given genotype")
+                if genotype[x] == Genotype.HOMO_ALT and self.data[x] == Haplotype.REF:
+                    raise ValueError("non-complementable haplotype for given genotype")
                 complement[x] = self.data[x]
             else: # HETERO
                 if self.data[x] == Haplotype.REF:
@@ -38,6 +42,17 @@ class Haplotype:
                 else: # ALT
                     complement[x] = Haplotype.REF
         return Haplotype(complement)
+
+    # Determines whether a haplotype explains a given genotype
+    def explains(self, genotype):
+        if self.m != len(genotype):
+            raise ValueError("genotype/haplotype length mismatch")
+        for x in xrange(self.m):
+            if self.data[x] == Haplotype.REF and genotype[x] == Genotype.HOMO_ALT:
+                return False
+            if self.data[x] == Haplotype.ALT and genotype[x] == Genotype.HOMO_REF:
+                return False
+        return True
 
     # Override the hash and eq functions since we will be
     # throwing Haplotype objects into a set to count parsimony
