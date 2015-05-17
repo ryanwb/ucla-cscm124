@@ -6,6 +6,9 @@ Module for phased haplotype data
 Author: Ryan Baker
 """
 
+from genotype import Genotype
+from haplotype import Haplotype
+
 # Phase class
 class Phase:
 
@@ -26,10 +29,34 @@ class Phase:
             elif genotype.data[x] == Genotype.HOMO_ALT:
                 if not (self.haps[0][x] == Haplotype.ALT and self.haps[1][x] == Haplotype.ALT):
                     return False
-            else: # genotype.HETERO
+            else: # Genotype.HETERO
                 if self.haps[0][x] == self.haps[1][x]:
                     return False
         return True
+
+    # Returns a genotype representation of this pair of haplotypes
+    def to_genotype(self):
+        genotype_data = [0] * self.m
+        for x in xrange(self.m):
+            if self.haps[0][x] == self.haps[1][x]:
+                if self.haps[0][x] == Haplotype.REF:
+                    genotype_data[x] = Genotype.HOMO_REF
+                else:   # Haplotype.ALT
+                    genotype_data[x] = Genotype.HOMO_ALT
+            else:   # heterozygous case
+                genotype_data[x] = Genotype.HETERO
+        return Genotype(genotype_data)
+
+    # override equality so that the order of the haplotypes does not matter
+    def __eq__(self, other):
+        if isinstance(other, Phase):
+            return ((self.haps[0] == other.haps[0] and self.haps[1] == other.haps[1])
+                or (self.haps[0] == other.haps[1] and self.haps[1] == other.haps[0]))
+        else:
+            return False
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def __getitem__(self, i):
         return self.haps[i]

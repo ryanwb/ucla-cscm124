@@ -66,6 +66,9 @@ class Haplotype:
         else:
             return False
 
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     def __getitem__(self, x):
         return self.data[x]
 
