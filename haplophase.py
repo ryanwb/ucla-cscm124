@@ -11,21 +11,24 @@ from haplotype import Haplotype
 from phase import Phase
 from phaser import Phaser
 import time
+import random
 import argparse
 
 def main():
 
-    parser = argparse.ArgumentParser(description='Phase genotype data into haplotypes (min parsimony)')
-    parser.add_argument('-n', type=int,
-                    help='number of individuals (each individual has two haplotypes)')
-    parser.add_argument('-m', type=int,
-                    help='number of SNPs')
+    parser = argparse.ArgumentParser(description="Phase genotype data into haplotypes (min parsimony)")
+    parser.add_argument("-n", type=int,
+                    help="number of individuals (each individual has two haplotypes)")
+    parser.add_argument("-m", type=int,
+                    help="number of SNPs")
     parser.add_argument("-e", "--exhaustive", action="store_true",
                     help="use exhaustive algorithm")
     parser.add_argument("-g", "--greedy", action="store_true", 
                     help="use greedy algorithm")
     parser.add_argument("-f", "--file",
                     help="hapmap phased haplotype input data file")
+    parser.add_argument("-p", type=int,
+                    help="number of haplotypes in the haplotype pool (if no input data file)")
     parser.add_argument("-v", "--verbose", action="store_true",
                     help="print extra output/data")
 
@@ -33,33 +36,34 @@ def main():
 
     phaser = Phaser()
 
-    # TODO: if no input file is provided, we want to create a pool of size p of haplotypes of length m,
-    # and randomly choose from this pool to create our haplotype data
-
-    '''
-    print 'Genotypes:'
-    genotypes = [Genotype(random=True, length=args.m) for i in xrange(args.n)]
-    for genotype in genotypes:
-        print genotype
-    '''
-
-    hapfile = open(args.file)
-    data = []
-    # throw away first line and first two columns
-    hapfile.readline()
-    for i in xrange(args.m):
-        data.append(hapfile.readline().split()[2:])
-    # now parse out the haplotypes!
     real_phase_data = []
-    for i_n in xrange(args.n):       # for each individual
-        hap_one_data = []
-        hap_two_data = []
-        for i_m in xrange(args.m):   # for each SNP
-            # arbitrarily assign 0 to the SNP that individual number 0 has at this SNP position
-            ref_snp = data[i_m][0]
-            hap_one_data.append(0 if data[i_m][i_n * 2] == ref_snp else 1)
-            hap_two_data.append(0 if data[i_m][i_n * 2 + 1] == ref_snp else 1)
-        real_phase_data.append(Phase(Haplotype(list(hap_one_data)), Haplotype(list(hap_two_data))))
+    if not args.file:
+        # generate a pool of haplotypes
+        hap_pool = phaser.generate_haplotypes(args.m)
+        # randomly use p of these haplotypes
+        pool = random.sample(xrange(len(hap_pool)), args.p)
+        for i in xrange(args.n):
+            hap_one = hap_pool[pool[random.randrange(len(pool))]]
+            hap_two = hap_pool[pool[random.randrange(len(pool))]]
+            real_phase_data.append(Phase(hap_one, hap_two))
+    else:
+        # grab haplotype data from input file
+        hapfile = open(args.file)
+        data = []
+        # throw away first line and first two columns
+        hapfile.readline()
+        for i in xrange(args.m):
+            data.append(hapfile.readline().split()[2:])
+        # now parse out the haplotypes!
+        for i_n in xrange(args.n):       # for each individual
+            hap_one_data = []
+            hap_two_data = []
+            for i_m in xrange(args.m):   # for each SNP
+                # arbitrarily assign 0 to the SNP that individual number 0 has at this SNP position
+                ref_snp = data[i_m][0]
+                hap_one_data.append(0 if data[i_m][i_n * 2] == ref_snp else 1)
+                hap_two_data.append(0 if data[i_m][i_n * 2 + 1] == ref_snp else 1)
+            real_phase_data.append(Phase(Haplotype(list(hap_one_data)), Haplotype(list(hap_two_data))))
 
     real_parsimony = phaser.parsimony(real_phase_data)
 

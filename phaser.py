@@ -8,6 +8,7 @@ Author: Ryan Baker
 
 # TODO: Compute/check all the complexities of these algorithms!
 # TODO: List vs. tuple? Switch some lists to tuples?
+# TODO: Change greedy algorithm to only generate valid combinations?
 
 import copy
 from itertools import product, combinations_with_replacement
@@ -134,7 +135,7 @@ class Phaser:
     #   1. Generate all possible phasings of n genotypes, regardless of the genotype information
     #   2. Prune this list, removing phasings that are incongruous with the genotype information
     #   3. At this point, we have all "valid" phasings... check which one has minimum parsimony
-    # Note that this algorithm is O( n * 2^(2mn) ). No bueno... but it is guaranteed to be optimal
+    # Note that this algorithm is O( 2^(2mn) ). No bueno... but it is guaranteed to be optimal
     def phase_trivial(self, genotypes):
         n = len(genotypes)
         m = genotypes[0].m
