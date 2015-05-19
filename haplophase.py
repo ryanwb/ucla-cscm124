@@ -53,7 +53,7 @@ def main():
             print ""
 
     # output will be in format:
-    # elapsed_time correct_phases total_phases accuracy found_parsimony actual_parsimony
+    # elapsed_time correct_phases/total_phases accuracy found_parsimony/actual_parsimony
     print "%g %d/%d %.5f %d/%d" % (t, acc[0], acc[1], acc[2], pars[0], pars[1])
 
 if __name__ == '__main__':
