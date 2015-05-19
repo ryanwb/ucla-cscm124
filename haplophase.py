@@ -25,6 +25,10 @@ def main():
                     help="use exhaustive algorithm")
     parser.add_argument("-g", "--greedy", action="store_true", 
                     help="use greedy algorithm")
+    parser.add_argument("-x", "--hash", action="store_true",
+                    help="use greedy hash lookup algorithm")
+    parser.add_argument("-r", "--reffile",
+                    help="reference hapmap file to fill hash table in greedy hash lookup algorithm")
     parser.add_argument("-f", "--file",
                     help="hapmap phased haplotype input data file")
     parser.add_argument("-p", type=int,
@@ -81,12 +85,27 @@ def main():
     # run the phasing algorithm!
     if args.greedy:
         phasing, parsimony = phaser.phase_greedy(genotypes)
+
+    elif args.hash:
+        ref_file = open(args.reffile)
+        ref_data = []
+        ref_haps = []
+        # throw away first line and first two columns
+        ref_file.readline()
+        for line in hapfile.readlines():
+            ref_data.append(line.split()[2:])
+        # now parse out the haplotypes!
+        for i_n in xrange(len(ref_data[0])):       # for each haplotype
+            ref_hap = []
+            for i_m in xrange(args.m):   # for each SNP of interest
+                # arbitrarily assign 0 to the SNP that individual number 0 has at this SNP position
+                ref_snp = ref_data[i_m][0]
+                ref_hap.append(0 if ref_data[i_m][i_n] == ref_snp else 1)
+            ref_haps.append(Haplotype(list(ref_hap)))
+        phasing, parsimony = phaser.phase_hash(genotypes, ref_haps)
+
     else: # if args.exhaustive
         phasing, parsimony = phaser.phase_trivial_improved(genotypes)
-
-    # TODO: my modification to the algorithm:
-    # hash the entire input data set to get haplotype frequencies
-    # then for each possible haplotype, just pick the most frequent one
 
     # stop the timer
     end_time = time.time()

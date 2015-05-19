@@ -186,3 +186,56 @@ class Phaser:
             for to_remove in resolved_genotypes:
                 unresolved_genotypes[:] = [g for g in unresolved_genotypes if g != to_remove]
         return phasing, self.parsimony(phasing)
+
+    # Here's an alternative greedy algorithm for phasing utilizing a couple hash lookup tables
+    # We use one hash table to store frequency information of haplotypes from reference (HapMap) data;
+    # we fill this table before starting the algorithm (precompute)
+    # We then use another hash table to store the most likely resolution of a genotype;
+    # we fill this table each time we phase a new genotype
+    # This lets us scale to a high number of individuals (and a high number of SNPs if the genotype
+    # diveristy is relatively low)
+    def phase_hash(self, genotypes, reference_haps):
+        n = len(genotypes)
+        m = genotypes[0].m
+        phasing = []
+        # Create our haplotype count hash table
+        # which maps a haplotype to its count in the reference data
+        hap_count_hash = {}
+        for hap in reference_haps:
+            if hap in hap_count_hash:
+                hap_count_hash[hap] += 1
+            else:
+                hap_count_hash[hap] = 1
+        # Create our (initially empty) resolution hash table
+        # which maps a genotype to the phase to choose
+        geno_phase_hash = {}
+        # Start phasing!
+        for genotype in genotypes:
+            if genotype in geno_phase_hash:
+                phasing.append(geno_phase_hash[genotype])
+            else:
+                # Generate all ways to phase this genotype
+                phases = self.generate_valid_haplotype_phases(genotype)
+                best_haplotype = phases[0][0]
+                best_count = 0
+                for p in phases:
+                    for x in xrange(1):
+                        if p[x] in hap_count_hash:
+                            if hap_count_hash[p[x]] > best_count:
+                                best_count = hap_count_hash[p[x]]
+                                best_haplotype = p[x]
+                # Now we will phase this genotype using best_haplotype (and its complement)
+                # and we will remember this phase in geno_phase_hash
+                hap_one = Haplotype(best_haplotype)
+                hap_two = hap_one.complement(genotype)
+                new_phase = Phase(hap_one, hap_two)
+                phasing.append(new_phase)
+                geno_phase_hash[genotype] = new_phase
+        return phasing, self.parsimony(phasing)
+
+
+
+
+
+
+
