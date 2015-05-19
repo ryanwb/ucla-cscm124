@@ -92,7 +92,7 @@ def main():
         ref_phases = []
         # throw away first line and first two columns
         ref_file.readline()
-        for line in hapfile.readlines():
+        for line in ref_file.readlines():
             ref_data.append(line.split()[2:])
         # now parse out the haplotypes!
         for i_n in xrange(0, len(ref_data[0]), 2):       # for each haplotype pair
