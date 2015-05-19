@@ -89,20 +89,22 @@ def main():
     elif args.hash:
         ref_file = open(args.reffile)
         ref_data = []
-        ref_haps = []
+        ref_phases = []
         # throw away first line and first two columns
         ref_file.readline()
         for line in hapfile.readlines():
             ref_data.append(line.split()[2:])
         # now parse out the haplotypes!
-        for i_n in xrange(len(ref_data[0])):       # for each haplotype
-            ref_hap = []
+        for i_n in xrange(0, len(ref_data[0]), 2):       # for each haplotype pair
+            hap_one_data = []
+            hap_two_data = []
             for i_m in xrange(args.m):   # for each SNP of interest
                 # arbitrarily assign 0 to the SNP that individual number 0 has at this SNP position
                 ref_snp = ref_data[i_m][0]
-                ref_hap.append(0 if ref_data[i_m][i_n] == ref_snp else 1)
-            ref_haps.append(Haplotype(list(ref_hap)))
-        phasing, parsimony = phaser.phase_hash(genotypes, ref_haps)
+                hap_one_data.append(0 if ref_data[i_m][i_n] == ref_snp else 1)
+                hap_two_data.append(0 if ref_data[i_m][i_n + 1] == ref_snp else 1)
+            ref_phases.append(Phase(Haplotype(list(hap_one_data)), Haplotype(list(hap_two_data))))
+        phasing, parsimony = phaser.phase_hash(genotypes, ref_phases)
 
     else: # if args.exhaustive
         phasing, parsimony = phaser.phase_trivial_improved(genotypes)

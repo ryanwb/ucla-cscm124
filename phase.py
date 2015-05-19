@@ -47,13 +47,17 @@ class Phase:
                 genotype_data[x] = Genotype.HETERO
         return Genotype(genotype_data)
 
-    # override equality so that the order of the haplotypes does not matter
+    # Override equality so that the order of the haplotypes does not matter
     def __eq__(self, other):
         if isinstance(other, Phase):
             return ((self.haps[0] == other.haps[0] and self.haps[1] == other.haps[1])
                 or (self.haps[0] == other.haps[1] and self.haps[1] == other.haps[0]))
         else:
             return False
+
+    # Override hash function
+    def __hash__(self):
+        return hash(tuple(self.haps[0])) + hash(tuple(self.haps[1]))
 
     def __ne__(self, other):
         return not self.__eq__(other)
