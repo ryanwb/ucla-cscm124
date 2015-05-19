@@ -1,7 +1,7 @@
 """
 haplophase.py
 
-Program to run haplotype phasing!
+Program to run haplotype phasing tests and record results
 
 Author: Ryan Baker
 """

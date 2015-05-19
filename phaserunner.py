@@ -77,7 +77,7 @@ class PhaseRunner:
         phasing, parsimony = self.phaser.phase_greedy(genotypes)
         end_time = time.time()
         elapsed_time = end_time - start_time
-        return elapsed_time, self.get_accuracy(real_phase_data, phasing), (parsimony, real_parsimony)
+        return elapsed_time, self.get_accuracy(real_phase_data, phasing), (parsimony, real_parsimony), real_phase_data, phasing
 
     def run_exhaustive(self, n, m, hapmapfile, random=False, p=None):
         if not random:
@@ -89,7 +89,7 @@ class PhaseRunner:
         phasing, parsimony = self.phaser.phase_trivial_improved(genotypes)
         end_time = time.time()
         elapsed_time = end_time - start_time
-        return elapsed_time, self.get_accuracy(real_phase_data, phasing), (parsimony, real_parsimony)
+        return elapsed_time, self.get_accuracy(real_phase_data, phasing), (parsimony, real_parsimony), real_phase_data, phasing
 
     def run_hash(self, n, m, hapmapfile, random=False, p=None):
         if not random:
@@ -119,8 +119,4 @@ class PhaseRunner:
         phasing, parsimony = self.phaser.phase_hash(genotypes, ref_phases)
         end_time = time.time()
         elapsed_time = end_time - start_time
-        return elapsed_time, self.get_accuracy(real_phase_data, phasing), (parsimony, real_parsimony)
-
-
-if __name__ == '__main__':
-    main()
+        return elapsed_time, self.get_accuracy(real_phase_data, phasing), (parsimony, real_parsimony), real_phase_data, phasing
